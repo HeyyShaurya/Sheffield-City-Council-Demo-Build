@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../types';
 import { store, fmt, ago } from '../store/sheffieldStore';
 import { PageHead } from '../components/CommonUI';
+
+import { EmployeeDashboard } from './dashboards/EmployeeDashboard';
+import { ManagerDashboard } from './dashboards/ManagerDashboard';
+import { RecruiterDashboard } from './dashboards/RecruiterDashboard';
+import { HrDashboard } from './dashboards/HrDashboard';
+import { PayrollDashboard } from './dashboards/PayrollDashboard';
+import { DirectorDashboard } from './dashboards/DirectorDashboard';
+import { AdminDashboard } from './dashboards/AdminDashboard';
 
 interface OverviewViewProps {
   user: User;
@@ -9,6 +17,48 @@ interface OverviewViewProps {
 }
 
 export const OverviewView: React.FC<OverviewViewProps> = ({ user, onNavigate }) => {
+  const [viewMode, setViewMode] = useState<'role' | 'cross-council'>('role');
+
+  // If in role mode, render the tailored dashboard for the current persona
+  if (viewMode === 'role') {
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: -12 }}>
+          <button
+            type="button"
+            className="btn small subtle"
+            onClick={() => setViewMode('cross-council')}
+            style={{ fontSize: 11, fontWeight: 700 }}
+          >
+            Switch to Cross-Council Executive Map &rarr;
+          </button>
+        </div>
+
+        {(() => {
+          switch (user.role) {
+            case 'employee':
+              return <EmployeeDashboard user={user} onNavigate={onNavigate} />;
+            case 'manager':
+              return <ManagerDashboard user={user} onNavigate={onNavigate} />;
+            case 'recruiter':
+              return <RecruiterDashboard user={user} onNavigate={onNavigate} />;
+            case 'hr':
+              return <HrDashboard user={user} onNavigate={onNavigate} />;
+            case 'payroll':
+              return <PayrollDashboard user={user} onNavigate={onNavigate} />;
+            case 'service':
+              return <DirectorDashboard user={user} onNavigate={onNavigate} />;
+            case 'admin':
+              return <AdminDashboard user={user} onNavigate={onNavigate} />;
+            default:
+              return <EmployeeDashboard user={user} onNavigate={onNavigate} />;
+          }
+        })()}
+      </div>
+    );
+  }
+
+  // Cross-council master view
   const stats = store.getDashboardStats(user);
   const firstName = user.name.split(' ')[0];
 
@@ -30,10 +80,21 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ user, onNavigate }) 
 
   return (
     <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <button
+          type="button"
+          className="btn small primary"
+          onClick={() => setViewMode('role')}
+          style={{ fontSize: 11, fontWeight: 700 }}
+        >
+          &larr; Return to {user.name}&apos;s Role Dashboard
+        </button>
+      </div>
+
       <PageHead
-        title="Your connected workplace"
-        kicker="OVERVIEW / LIVE WORKSPACE"
-        desc={`Welcome, ${firstName}. Every completed demo action updates the shared data model.`}
+        title="Cross-Council Modernisation Map"
+        kicker="OVERVIEW / MASTER ARCHITECTURE"
+        desc={`Welcome, ${firstName}. Every completed demo action updates the shared reactive store.`}
       />
 
       <div className="hero-strip">

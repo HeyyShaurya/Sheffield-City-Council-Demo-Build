@@ -4,6 +4,7 @@ import { canAccess, Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { Toast } from './components/Toast';
 import { Modal } from './components/Modal';
+import { AiAssistantWidget } from './components/AiAssistantWidget';
 
 // Views
 import { LoginView } from './views/LoginView';
@@ -68,7 +69,7 @@ export const App: React.FC = () => {
     store.login(userId, pin);
     setIsPublicMode(false);
     setCurrentPage('overview');
-    showToast(`Signed in as ${store.currentUser?.name}`);
+    showToast(`Signed in as ${store.currentUser?.name} (${ROLE_LABELS[store.currentUser?.role || 'employee']})`);
   };
 
   const handleSelectPersona = (userId: number) => {
@@ -77,10 +78,8 @@ export const App: React.FC = () => {
       store.setCurrentUser(selected);
       showToast(`Switched persona to ${selected.name} (${ROLE_LABELS[selected.role] || selected.role})`);
       setIsSwitchPersonaModalOpen(false);
-      // If current page is restricted for this new persona, redirect to overview
-      if (!canAccess(currentPage, selected.role)) {
-        setCurrentPage('overview');
-      }
+      // Automatically redirect to the persona's role dashboard on overview
+      setCurrentPage('overview');
     }
   };
 
@@ -203,6 +202,7 @@ export const App: React.FC = () => {
           onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           onRefresh={() => setTick((t) => t + 1)}
           onSwitchPersona={() => setIsSwitchPersonaModalOpen(true)}
+          onOpenAiAssistant={() => window.dispatchEvent(new CustomEvent('open-sheffield-ai'))}
         />
 
         <main className="content" tabIndex={-1}>
@@ -210,17 +210,25 @@ export const App: React.FC = () => {
         </main>
 
         <footer className="main-footer">
-          PayrollCloud Limited &bull; Opportunity-specific interactive prototype &bull; Illustrative data / simulated
-          integrations &bull; <span>{todayFormatted}</span>
+          Sheffield City Council &bull; Sheffield Connect Connected People Platform &bull; Opportunity-specific interactive prototype &bull; <span>{todayFormatted}</span>
         </footer>
       </div>
+
+      {/* Floating AI Voice & Action Agent Widget */}
+      {!isPublicMode && (
+        <AiAssistantWidget
+          user={user}
+          onNavigate={handleNavigate}
+          onToast={showToast}
+        />
+      )}
 
       {/* Switch Persona Modal */}
       <Modal
         isOpen={isSwitchPersonaModalOpen}
         onClose={() => setIsSwitchPersonaModalOpen(false)}
-        title="Switch Demo Persona"
-        intro="Select an active Sheffield City Council role to experience their permissions and handoff journey."
+        title="Switch Sheffield Council Persona"
+        intro="Select an active corporate role to experience their tailored landing view, permissions, and handoff workflows."
       >
         <div className="grid two" style={{ gap: 12 }}>
           {personas.map((p) => {
@@ -232,9 +240,10 @@ export const App: React.FC = () => {
                 style={{
                   textAlign: 'left',
                   cursor: 'pointer',
-                  border: isCurrent ? '2px solid #2d77c7' : '1px solid var(--border)',
+                  border: isCurrent ? '2px solid #005A36' : '1px solid var(--border)',
                   color: isCurrent ? '#fff' : 'inherit',
                   padding: 14,
+                  borderRadius: 10,
                 }}
                 onClick={() => handleSelectPersona(p.id)}
                 type="button"
@@ -259,7 +268,7 @@ export const App: React.FC = () => {
             }}
             type="button"
           >
-            Sign out to login screen
+            Sign out to Sheffield SSO
           </button>
           <button
             className="btn primary"

@@ -10,6 +10,7 @@ interface TopbarProps {
   onToggleMobileMenu: () => void;
   onRefresh: () => void;
   onSwitchPersona?: () => void;
+  onOpenAiAssistant?: () => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
@@ -18,12 +19,14 @@ export const Topbar: React.FC<TopbarProps> = ({
   currentPage,
   onToggleMobileMenu,
   onRefresh,
+  onSwitchPersona,
+  onOpenAiAssistant,
 }) => {
   const getPageTitle = () => {
     if (isPublicMode) return 'Public careers';
     const all = [...NAV_ITEMS, ...NAV_DEMO_ITEMS];
     const match = all.find((item) => item.key === currentPage);
-    return match ? match.title : 'Overview';
+    return match ? match.title : 'Workspace';
   };
 
   const displayName = isPublicMode ? 'Public careers' : user?.name || 'Guest';
@@ -49,7 +52,21 @@ export const Topbar: React.FC<TopbarProps> = ({
       </div>
 
       <div className="top-right">
-        <span className="demo-chip">SANDBOX DEMO</span>
+        {/* Sandbox Demo badge completely removed as requested */}
+
+        {!isPublicMode && onOpenAiAssistant && (
+          <button
+            className="btn small light"
+            onClick={onOpenAiAssistant}
+            type="button"
+            title="Open Conversational AI Agent"
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, borderRadius: 8 }}
+          >
+            <span style={{ fontSize: 14 }}>✦</span>
+            <span>Sheffield AI</span>
+          </button>
+        )}
+
         <button
           className="iconbtn"
           onClick={onRefresh}
@@ -59,7 +76,12 @@ export const Topbar: React.FC<TopbarProps> = ({
           ↻
         </button>
 
-        <div className="avatar-name">
+        <div
+          className="avatar-name"
+          onClick={onSwitchPersona}
+          style={{ cursor: onSwitchPersona ? 'pointer' : 'default' }}
+          title={onSwitchPersona ? 'Click to change persona' : undefined}
+        >
           <div className="avatar">{displayInitials}</div>
           <div className="user-label">
             <strong>{displayName}</strong>
